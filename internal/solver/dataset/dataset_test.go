@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-var sampleGrid = [][]int64{
+var sampleGrid = Grid{
 	{0, 0, 0, 0, 0, 0, 0, 0, 0},
 	{0, 0, 0, 0, 0, 0, 0, 0, 0},
 	{0, 0, 0, 6, 0, 1, 0, 7, 8},
@@ -20,164 +20,138 @@ var sampleGrid = [][]int64{
 func TestDataset_Validate(t *testing.T) {
 
 	t.Run("No error when sampleGrid is correct", func(t *testing.T) {
-		dataset := Dataset{sampleGrid}
+		dataset := CopyGrid(sampleGrid)
 
-		if dataset.Validate() != nil {
+		if Validate(dataset) != nil {
 			t.Error("Validated correct Grid as invalid")
 		}
 	})
 
 	t.Run("Grid has too many rows", func(t *testing.T) {
-		dataset := Dataset{append(sampleGrid, sampleGrid[0])}
+		dataset := append(sampleGrid, sampleGrid[0])
 
-		if dataset.Validate() == nil {
+		if Validate(dataset) == nil {
 			t.Error("Validated Grid with too many rows as correct")
 		} else {
-			if dataset.Validate() != ErrTooManyRows {
+			if Validate(dataset) != ErrTooManyRows {
 				t.Error("Invalid error provided")
 			}
 		}
 	})
 
 	t.Run("Grid has too many columns", func(t *testing.T) {
-		colGrid := make([][]int64, len(sampleGrid))
-		copy(colGrid, sampleGrid)
+		colGrid := CopyGrid(sampleGrid)
 		colGrid[0] = append(colGrid[0], 1, 2, 3)
 
-		dataset := Dataset{colGrid}
-
-		if dataset.Validate() == nil {
+		if Validate(colGrid) == nil {
 			t.Error("Validated Grid with too many columns as correct")
 		} else {
-			if dataset.Validate() != ErrTooManyCols {
+			if Validate(colGrid) != ErrTooManyCols {
 				t.Error("Invalid error provided")
 			}
 		}
 	})
 
 	t.Run("Grid has too low values provided", func(t *testing.T) {
-		nGrid := make([][]int64, len(sampleGrid))
-		copy(nGrid, sampleGrid)
+		nGrid := CopyGrid(sampleGrid)
 
-		dataset := Dataset{nGrid}
-		dataset.SetValue(Position{0, 0}, -1)
+		nGrid[0][0] = -1
 
-		if dataset.Validate() == nil {
+		if Validate(nGrid) == nil {
 			t.Error("Validated Grid with negative values as correct")
 		} else {
-			if dataset.Validate() != ErrInvalidData {
+			if Validate(nGrid) != ErrInvalidData {
 				t.Error("Invalid error provided")
 			}
 		}
 	})
 
 	t.Run("Grid has too high values provided", func(t *testing.T) {
-		nGrid := make([][]int64, len(sampleGrid))
-		copy(nGrid, sampleGrid)
+		nGrid := CopyGrid(sampleGrid)
 
-		dataset := Dataset{nGrid}
-		dataset.SetValue(Position{0, 0}, 10)
+		nGrid[0][0] = 10
 
-		if dataset.Validate() == nil {
+		if Validate(nGrid) == nil {
 			t.Error("Validated Grid with too high values as correct")
 		} else {
-			if dataset.Validate() != ErrInvalidData {
+			if Validate(nGrid) != ErrInvalidData {
 				t.Error("Invalid error provided")
 			}
 		}
 	})
 
 	t.Run("Grid has duplicated values in a row", func(t *testing.T) {
-		nGrid := make([][]int64, len(sampleGrid))
-		copy(nGrid, sampleGrid)
+		nGrid := CopyGrid(sampleGrid)
 
-		dataset := Dataset{nGrid}
-		dataset.SetValue(Position{0, 0}, 5)
-		dataset.SetValue(Position{0, 1}, 5)
+		nGrid[0][0] = 5
+		nGrid[1][0] = 5
 
-		if dataset.Validate() == nil {
+		if Validate(nGrid) == nil {
 			t.Error("Validated Grid with duplicated values in a row as correct")
 		} else {
-			if dataset.Validate() != ErrDuplicatedValues {
+			if Validate(nGrid) != ErrDuplicatedValues {
 				t.Error("Invalid error provided")
 			}
 		}
 	})
 
 	t.Run("Grid has duplicated values in a column", func(t *testing.T) {
-		nGrid := make([][]int64, len(sampleGrid))
-		copy(nGrid, sampleGrid)
+		nGrid := CopyGrid(sampleGrid)
 
-		dataset := Dataset{nGrid}
-		dataset.SetValue(Position{0, 5}, 5)
-		dataset.SetValue(Position{1, 5}, 5)
+		nGrid[8][0] = 1
 
-		if dataset.Validate() == nil {
+		if Validate(nGrid) == nil {
 			t.Error("Validated Grid with duplicated values in a column as correct")
 		} else {
-			if dataset.Validate() != ErrDuplicatedValues {
+			if Validate(nGrid) != ErrDuplicatedValues {
 				t.Error("Invalid error provided")
 			}
 		}
 	})
 
 	t.Run("Grid has duplicated values in a box", func(t *testing.T) {
-		nGrid := make([][]int64, len(sampleGrid))
-		copy(nGrid, sampleGrid)
+		nGrid := CopyGrid(sampleGrid)
 
-		dataset := Dataset{nGrid}
-		dataset.SetValue(Position{5, 5}, 3)
-		dataset.SetValue(Position{5, 6}, 3)
+		nGrid[5][5] = 3
+		nGrid[6][5] = 3
 
-		if dataset.Validate() == nil {
+		if Validate(nGrid) == nil {
 			t.Error("Validated Grid with duplicated values in a box as correct")
 		} else {
-			if dataset.Validate() != ErrDuplicatedValues {
+			if Validate(nGrid) != ErrDuplicatedValues {
 				t.Error("Invalid error provided")
 			}
 		}
 	})
 }
 
-func TestDataset_SetValue(t *testing.T) {
-	t.Run("Set correct value", func(t *testing.T) {
-		nGrid := make([][]int64, len(sampleGrid))
-		copy(nGrid, sampleGrid)
-
-		dataset := Dataset{nGrid}
-		err := dataset.SetValue(Position{1, 1}, 2)
-
-		if err != nil {
-			t.Fatal("Could not set value")
-		}
-
-		res, err := dataset.GetValue(Position{1, 1})
-		if res != 2 && err != nil {
-			t.Error("Could not fetch set value")
-		}
-	})
-
-	t.Run("Set not existing position", func(t *testing.T) {
-		nGrid := make([][]int64, len(sampleGrid))
-		copy(nGrid, sampleGrid)
-
-		dataset := Dataset{nGrid}
-		err := dataset.SetValue(Position{1, 10}, 2)
-
-		if err != ErrorFieldNoExists {
-			t.Error("Setting invalid value succeeded")
-		}
-	})
-}
-
 func TestDataset_GetValue(t *testing.T) {
-	nGrid := make([][]int64, len(sampleGrid))
-	copy(nGrid, sampleGrid)
+	nGrid := CopyGrid(sampleGrid)
 
-	dataset := Dataset{nGrid}
-	d, err := dataset.GetValue(Position{10, 10})
+	d, err := nGrid.GetValue(Position{10, 10})
 	fmt.Println(d)
 	if err != ErrorFieldNoExists {
 		t.Error("Getting invalid value succeeded")
 	}
 }
+
+//func TestGrid_Rebuild(t *testing.T) {
+//	grid := CopyGrid(sampleGrid)
+//	copiedGrid, err := grid.Rebuild(Position{X: 0, Y: 0}, 0)
+//
+//	if err != nil {
+//		t.Error(err)
+//	}
+//
+//	if !reflect.DeepEqual(grid, copiedGrid) {
+//		t.Error("values of rebuilt grid should remain same")
+//	}
+//
+//	if fmt.Sprintf("%p", &grid) == fmt.Sprintf("%p", &copiedGrid) {
+//		t.Error("memory address of grids are same")
+//	}
+//
+//	if fmt.Sprintf("%p", &grid[0]) == fmt.Sprintf("%p", &copiedGrid[0]) {
+//		t.Error("memory address of grids elements are same")
+//	}
+//}

@@ -26,37 +26,67 @@ type Position struct {
 	Y int
 }
 
-type Dataset struct {
-	Grid [][]int64
+type Grid [][]int64
+
+func (dataset Grid) IsFilled() bool {
+	for _, arr := range dataset {
+		for _, val := range arr {
+			if val == EmptyVal {
+				return false
+			}
+		}
+	}
+	return true
 }
 
-func (dataset Dataset) Data() [][]int64 {
-	return dataset.Grid
+func (dataset Grid) Rebuild(pos Position, val int64) (Grid, error) {
+	rebuilt := CopyGrid(dataset)
+	rebuilt[pos.Y][pos.X] = val
+
+	return rebuilt, nil
 }
 
-func (dataset Dataset) Validate() error {
-	if len(dataset.Grid) != GridSize {
+func CopyGrid(matrix Grid) Grid {
+	duplicate := make(Grid, len(matrix))
+	for i := range matrix {
+		duplicate[i] = make([]int64, len(matrix[i]))
+		copy(duplicate[i], matrix[i])
+	}
+
+	return duplicate
+}
+
+func (dataset Grid) GetValue(pos Position) (int64, error) {
+	if !has(dataset, pos) {
+		return 0, ErrorFieldNoExists
+	}
+
+	return dataset[pos.Y][pos.X], nil
+}
+
+func Validate(dataset Grid) error {
+	if len(dataset) != GridSize {
 		return ErrTooManyRows
 	}
 
-	columns := make([][]int64, len(dataset.Grid))
-	for y, row := range dataset.Grid {
+	columns := make([][]int64, len(dataset))
+	for _, row := range dataset {
 		if len(row) != GridSize {
 			return ErrTooManyCols
 		}
 
 		// check if there are duplicated values in rows
 		if hasDuplicates(row) {
-			return ErrDuplicatedValues
+			return ErrTooManyCols
 		}
 
 		// check if cell vales are correct
-		for _, item := range row {
+		for x, item := range row {
 			if item != EmptyVal && (item < MinVal || item > MaxVal) {
 				return ErrInvalidData
 			}
 
-			columns[y] = append(columns[y], item)
+			columns[x] = append(columns[x], item)
 		}
 	}
 
@@ -69,13 +99,13 @@ func (dataset Dataset) Validate() error {
 
 	// check if there duplicated values in 3x3 boxes
 	for x := 0; x <= GridSize-1; x = x + BoxSize {
-		subset := dataset.Grid[x : x+BoxSize]
+		subset := dataset[x : x+BoxSize]
 
 		for y := 0; y <= GridSize-1; y = y + BoxSize {
 			var boxVars []int64
 
-			for _, vals := range subset {
-				dd := vals[y : y+BoxSize]
+			for _, values := range subset {
+				dd := values[y : y+BoxSize]
 				boxVars = append(boxVars, dd...)
 			}
 
@@ -88,31 +118,17 @@ func (dataset Dataset) Validate() error {
 	return nil
 }
 
-func (dataset *Dataset) SetValue(pos Position, val int64) error {
-	if !has(dataset.Data(), pos) {
-		return ErrorFieldNoExists
-	}
-
-	dataset.Grid[pos.Y][pos.X] = val
-
-	return nil
-}
-
-func (dataset Dataset) GetValue(pos Position) (int64, error) {
-	if !has(dataset.Data(), pos) {
-		return 0, ErrorFieldNoExists
-	}
-
-	return dataset.Grid[pos.Y][pos.X], nil
-}
-
-func (dataset Dataset) PrettyPrint() {
-	for _, row := range dataset.Grid {
+func PrettyPrint(dataset Grid) {
+	for _, row := range dataset {
 		fmt.Println(row)
 	}
 }
 
-func has(grid [][]int64, pos Position) bool {
+func IsEmpty(cell int64) bool {
+	return int(cell) == EmptyVal
+}
+
+func has(grid Grid, pos Position) bool {
 	if len(grid) < pos.Y {
 		return false
 	}
@@ -139,8 +155,4 @@ func hasDuplicates(row []int64) bool {
 	}
 
 	return false
-}
-
-func Create(data [][]int64) Dataset {
-	return Dataset{data}
 }

@@ -7,11 +7,11 @@ import (
 	"strconv"
 )
 
-func Load(file io.Reader) (Dataset, error) {
+func Load(file io.Reader) (Grid, error) {
 	scanner := bufio.NewScanner(file)
 	scanner.Split(bufio.ScanWords)
 
-	var data [][]int64
+	var data Grid
 
 	for scanner.Scan() {
 		row := scanner.Text()
@@ -21,7 +21,7 @@ func Load(file io.Reader) (Dataset, error) {
 			val, err := strconv.ParseInt(string(s), 0, 0)
 
 			if err != nil {
-				return Dataset{}, errors.New("invalid dataset provided")
+				return data, errors.New("invalid dataset provided")
 			}
 
 			ints[i] = val
@@ -30,5 +30,5 @@ func Load(file io.Reader) (Dataset, error) {
 		data = append(data, ints)
 	}
 
-	return Dataset{data}, nil
+	return data, nil
 }

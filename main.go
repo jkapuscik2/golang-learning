@@ -1,21 +1,37 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"learning-go-d/internal/solver"
-	"learning-go-d/internal/solver/dataset"
+	"github.com/pkg/profile"
+	"learning-go-sudoku/internal/solver"
+	"learning-go-sudoku/internal/solver/dataset"
 	"log"
 	"os"
+	"runtime"
 )
 
 func main() {
+	filePath := flag.String("path", "data/1.txt", "Path to fle with sudoku")
+	prof := flag.Bool("profile", false, "If application should be profiled")
+	workers := flag.Int("workers", runtime.NumCPU(), "Number of workers")
+	help := flag.Bool("help", false, "Display help ")
 
-	fileName := "data/1.txt"
+	flag.Parse()
 
-	file, err := os.Open(fileName)
+	if *help {
+		flag.PrintDefaults()
+		return
+	}
+
+	if *prof {
+		defer profile.Start(profile.MemProfile, profile.ProfilePath(".")).Stop()
+	}
+
+	file, err := os.Open(*filePath)
 
 	if err != nil {
-		log.Fatal("Dataset file does not exist")
+		log.Fatal(err)
 	}
 
 	data, err := dataset.Load(file)
@@ -24,39 +40,32 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	err = data.Validate()
-
-	if err != nil {
-		log.Fatalf("Invalid data provided %q", err.Error())
-	}
-
 	fmt.Println("Initial grid")
-	data.PrettyPrint()
+	dataset.PrettyPrint(data)
 
-	sol, err := solver.SolveSync(data)
-	fmt.Println("Solved grid", err)
-	sol.PrettyPrint()
+	sync(dataset.CopyGrid(data))
 
-	// failed attempts to do same with multiple threads
+	async(dataset.CopyGrid(data), *workers)
+}
 
-	//ch := make(chan solver.Response)
-	//ch := make(chan solver.Response, 1)
+func sync(grid dataset.Grid) {
+	fmt.Println("Solving sudoku synchronously")
 
-	//fmt.Println(fmt.Printf("Data address in main.go: %p \n", &data))
-	//fmt.Println(fmt.Printf("Grid address in main.go: %p \n", &data.Grid))
+	solution, err := solver.SolveBacktrace(grid)
+	if err != nil {
+		fmt.Println("Failed to solve grid", err)
+	} else {
+		dataset.PrettyPrint(solution)
+	}
+}
 
-	//go solver.SolveAsync(data, ch)
-	//fmt.Println("Solved grid", err)
-	//sol.PrettyPrint()
+func async(grid dataset.Grid, workers int) {
+	fmt.Println("Solving sudoku asynchronously")
 
-	//res := <-ch
-
-	//fmt.Println(res)
-	//select {
-	//case msg1 := <-ch:
-	//	fmt.Println("received", msg1)
-	//case <-time.After(5 * time.Second):
-	//	fmt.Println("timeout")
-	//}
-	//fmt.Println(res)
+	solution, err := solver.SolveAsync(grid, workers)
+	if err != nil {
+		fmt.Println("Failed to solve grid", err)
+	} else {
+		dataset.PrettyPrint(solution)
+	}
 }
