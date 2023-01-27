@@ -77,7 +77,7 @@ func Validate(dataset Grid) error {
 
 		// check if there are duplicated values in rows
 		if hasDuplicates(row) {
-			return ErrTooManyCols
+			return ErrDuplicatedValues
 		}
 
 		// check if cell vales are correct
