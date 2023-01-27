@@ -10,7 +10,7 @@ go build main.go
 ./main
 ```
 
-Possible flags:
+Avaliable flags:
 ```
   -help
         Display help 
