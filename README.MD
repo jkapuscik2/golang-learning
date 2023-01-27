@@ -1,4 +1,4 @@
-### Learning go
+## Sudoku solver
 
 The script solves sudoku grid provided in a form of .txt file
 
