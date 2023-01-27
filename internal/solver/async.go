@@ -2,7 +2,6 @@ package solver
 
 import (
 	"context"
-	"errors"
 	"learning-go-sudoku/internal/solver/dataset"
 	"time"
 )
@@ -22,8 +21,7 @@ func SolveAsync(grid dataset.Grid, workers int) (dataset.Grid, error) {
 	}
 	jobs <- grid
 
-	var attemptCount int
-	var failedCount int
+	attemptCount, failedCount := 1, 0
 
 	for {
 		select {
@@ -36,25 +34,22 @@ func SolveAsync(grid dataset.Grid, workers int) (dataset.Grid, error) {
 				failedCount += 1
 			}
 			if failedCount >= attemptCount {
-				return grid, errors.New("failed to solve the board")
+				return grid, ErrNoSolutions
 			}
-		case <-time.After(time.Second * 5):
-			return grid, errors.New("timeout. Failed to solve the board")
+		case <-time.After(time.Second):
+			return grid, ErrTimeout
 		}
 	}
 }
 
 func worker(ctx context.Context, jobs chan dataset.Grid, attempts chan<- bool, solutions chan dataset.Grid) {
-
 	for {
 		select {
 		case j := <-jobs:
-			attempts <- true
 			guessAsync(j, solutions, attempts, jobs)
 		case <-ctx.Done():
 			return
 		}
-
 	}
 }
 
@@ -64,8 +59,6 @@ func guessAsync(
 	attempts chan<- bool,
 	jobs chan<- dataset.Grid,
 ) {
-	attempts <- true
-
 	for y, row := range grid {
 		for x, cell := range row {
 			if dataset.IsEmpty(cell) {
@@ -81,14 +74,15 @@ func guessAsync(
 							solutions <- copied
 							return
 						} else {
+							attempts <- true
 							go func() {
 								jobs <- copied
 							}()
 						}
 					}
 				}
+				// no more possible solutions for given empty cell
 				attempts <- false
-				// no more possible solutions for given grid
 				return
 			}
 		}
@@ -96,7 +90,9 @@ func guessAsync(
 
 	if err := dataset.Validate(grid); err == nil {
 		solutions <- grid
+		return
 	} else {
 		attempts <- false
+		return
 	}
 }

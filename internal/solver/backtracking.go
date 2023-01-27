@@ -1,7 +1,6 @@
 package solver
 
 import (
-	"errors"
 	"learning-go-sudoku/internal/solver/dataset"
 )
 
@@ -38,9 +37,13 @@ func solveBacktrace(grid dataset.Grid) (dataset.Grid, error) {
 					// Wrong guess, restoring initial value
 					grid[y][x] = initVal
 				}
-				return grid, errors.New("failed to solve the board")
+				return grid, ErrNoSolutions
 			}
 		}
 	}
-	return grid, nil
+	if err := dataset.Validate(grid); err == nil {
+		return grid, nil
+	} else {
+		return grid, ErrNoSolutions
+	}
 }

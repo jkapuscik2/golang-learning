@@ -2,6 +2,7 @@ package dataset
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 )
 
@@ -84,7 +85,7 @@ func TestDataset_Validate(t *testing.T) {
 		nGrid := CopyGrid(sampleGrid)
 
 		nGrid[0][0] = 5
-		nGrid[1][0] = 5
+		nGrid[0][1] = 5
 
 		if Validate(nGrid) == nil {
 			t.Error("Validated Grid with duplicated values in a row as correct")
@@ -112,8 +113,8 @@ func TestDataset_Validate(t *testing.T) {
 	t.Run("Grid has duplicated values in a box", func(t *testing.T) {
 		nGrid := CopyGrid(sampleGrid)
 
-		nGrid[5][5] = 3
-		nGrid[6][5] = 3
+		nGrid[0][0] = 3
+		nGrid[1][1] = 3
 
 		if Validate(nGrid) == nil {
 			t.Error("Validated Grid with duplicated values in a box as correct")
@@ -128,30 +129,40 @@ func TestDataset_Validate(t *testing.T) {
 func TestDataset_GetValue(t *testing.T) {
 	nGrid := CopyGrid(sampleGrid)
 
-	d, err := nGrid.GetValue(Position{10, 10})
-	fmt.Println(d)
+	_, err := nGrid.GetValue(Position{10, 10})
+
 	if err != ErrorFieldNoExists {
 		t.Error("Getting invalid value succeeded")
 	}
+
+	val, err := nGrid.GetValue(Position{8, 8})
+
+	if val != sampleGrid[8][8] {
+		t.Error("could not get value from the grid")
+	}
+
+	if err != nil {
+		t.Errorf("error during getting value from the grid: %v", err.Error())
+	}
 }
 
-//func TestGrid_Rebuild(t *testing.T) {
-//	grid := CopyGrid(sampleGrid)
-//	copiedGrid, err := grid.Rebuild(Position{X: 0, Y: 0}, 0)
-//
-//	if err != nil {
-//		t.Error(err)
-//	}
-//
-//	if !reflect.DeepEqual(grid, copiedGrid) {
-//		t.Error("values of rebuilt grid should remain same")
-//	}
-//
-//	if fmt.Sprintf("%p", &grid) == fmt.Sprintf("%p", &copiedGrid) {
-//		t.Error("memory address of grids are same")
-//	}
-//
-//	if fmt.Sprintf("%p", &grid[0]) == fmt.Sprintf("%p", &copiedGrid[0]) {
-//		t.Error("memory address of grids elements are same")
-//	}
-//}
+func TestGrid_Rebuild(t *testing.T) {
+	grid := CopyGrid(sampleGrid)
+	copiedGrid, err := grid.Rebuild(Position{X: 0, Y: 0}, 0)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if !reflect.DeepEqual(grid, copiedGrid) {
+		t.Error("values of rebuilt grid should remain same")
+	}
+
+	if fmt.Sprintf("%p", &grid) == fmt.Sprintf("%p", &copiedGrid) {
+		t.Error("memory address of grids are same")
+	}
+
+	if fmt.Sprintf("%p", &grid[0]) == fmt.Sprintf("%p", &copiedGrid[0]) {
+		t.Error("memory address of grids elements are same")
+	}
+}
