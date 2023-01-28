@@ -7,10 +7,10 @@ import (
 )
 
 func SolveAsync(grid dataset.Grid, workers int) (dataset.Grid, error) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	solutions := make(chan dataset.Grid)
+	solutions := make(chan dataset.Grid, 1)
 	// true - success
 	// false - failure
 	attempts := make(chan bool)
@@ -36,7 +36,7 @@ func SolveAsync(grid dataset.Grid, workers int) (dataset.Grid, error) {
 			if failedCount >= attemptCount {
 				return grid, ErrNoSolutions
 			}
-		case <-time.After(time.Second):
+		case <-ctx.Done():
 			return grid, ErrTimeout
 		}
 	}
