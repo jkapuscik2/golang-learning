@@ -13,8 +13,8 @@ func SolveAsync(grid dataset.Grid, workers int) (dataset.Grid, error) {
 	solutions := make(chan dataset.Grid, 1)
 	// true - success
 	// false - failure
-	attempts := make(chan bool)
-	jobs := make(chan dataset.Grid)
+	attempts := make(chan bool, workers)
+	jobs := make(chan dataset.Grid, workers)
 
 	for i := 0; i < workers; i++ {
 		go worker(ctx, jobs, attempts, solutions)

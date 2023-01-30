@@ -14,7 +14,7 @@ import (
 func main() {
 	filePath := flag.String("path", "data/1.txt", "Path to fle with sudoku")
 	prof := flag.Bool("profile", false, "If application should be profiled")
-	workers := flag.Int("workers", runtime.NumCPU(), "Number of workers")
+	workers := flag.Int("workers", runtime.GOMAXPROCS(0), "Number of workers")
 	help := flag.Bool("help", false, "Display help ")
 
 	flag.Parse()
