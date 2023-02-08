@@ -104,8 +104,9 @@ func TestSolveAsyncSolvedInvalid(t *testing.T) {
 }
 
 func BenchmarkSolveAsync(b *testing.B) {
+	workers := runtime.GOMAXPROCS(0)
 	for i := 0; i < b.N; i++ {
 		grid := dataset.CopyGrid(sampleGrid)
-		SolveAsync(grid, runtime.NumCPU())
+		SolveAsync(grid, workers)
 	}
 }

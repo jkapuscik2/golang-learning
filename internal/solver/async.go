@@ -63,11 +63,7 @@ func guessAsync(
 		for x, cell := range row {
 			if dataset.IsEmpty(cell) {
 				for guess := dataset.MinVal; guess <= dataset.MaxVal; guess++ {
-					copied, err := grid.Rebuild(dataset.Position{X: x, Y: y}, int64(guess))
-					if err != nil {
-						attempts <- false
-						return
-					}
+					copied := grid.Rebuild(dataset.Position{X: x, Y: y}, int64(guess))
 
 					if err := dataset.Validate(copied); err == nil {
 						if copied.IsFilled() {

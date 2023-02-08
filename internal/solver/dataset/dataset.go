@@ -26,7 +26,7 @@ type Position struct {
 	Y int
 }
 
-type Grid [][]int64
+type Grid [GridSize][GridSize]int64
 
 func (dataset Grid) IsFilled() bool {
 	for _, arr := range dataset {
@@ -39,18 +39,17 @@ func (dataset Grid) IsFilled() bool {
 	return true
 }
 
-func (dataset Grid) Rebuild(pos Position, val int64) (Grid, error) {
+func (dataset Grid) Rebuild(pos Position, val int64) Grid {
 	rebuilt := CopyGrid(dataset)
 	rebuilt[pos.Y][pos.X] = val
 
-	return rebuilt, nil
+	return rebuilt
 }
 
 func CopyGrid(matrix Grid) Grid {
-	duplicate := make(Grid, len(matrix))
+	var duplicate Grid
 	for i := range matrix {
-		duplicate[i] = make([]int64, len(matrix[i]))
-		copy(duplicate[i], matrix[i])
+		duplicate[i] = matrix[i]
 	}
 
 	return duplicate
@@ -65,16 +64,8 @@ func (dataset Grid) GetValue(pos Position) (int64, error) {
 }
 
 func Validate(dataset Grid) error {
-	if len(dataset) != GridSize {
-		return ErrTooManyRows
-	}
-
-	columns := make([][]int64, len(dataset))
-	for _, row := range dataset {
-		if len(row) != GridSize {
-			return ErrTooManyCols
-		}
-
+	columns := Grid{}
+	for idx, row := range dataset {
 		// check if there are duplicated values in rows
 		if hasDuplicates(row) {
 			return ErrDuplicatedValues
@@ -86,7 +77,7 @@ func Validate(dataset Grid) error {
 				return ErrInvalidData
 			}
 
-			columns[x] = append(columns[x], item)
+			columns[x][idx] = item
 		}
 	}
 
@@ -102,11 +93,14 @@ func Validate(dataset Grid) error {
 		subset := dataset[x : x+BoxSize]
 
 		for y := 0; y <= GridSize-1; y = y + BoxSize {
-			var boxVars []int64
+			var boxVars [GridSize]int64
 
-			for _, values := range subset {
-				dd := values[y : y+BoxSize]
-				boxVars = append(boxVars, dd...)
+			for idx, values := range subset {
+				columnVales := values[y : y+BoxSize]
+
+				for colIdx, columnVal := range columnVales {
+					boxVars[idx*len(columnVales)+colIdx] = columnVal
+				}
 			}
 
 			if hasDuplicates(boxVars) {
@@ -142,7 +136,7 @@ func has(grid Grid, pos Position) bool {
 	return true
 }
 
-func hasDuplicates(row []int64) bool {
+func hasDuplicates(row [GridSize]int64) bool {
 	checked := make(map[int64]int64, len(row))
 	for _, val := range row {
 		if _, ok := checked[val]; ok {

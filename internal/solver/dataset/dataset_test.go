@@ -28,31 +28,6 @@ func TestDataset_Validate(t *testing.T) {
 		}
 	})
 
-	t.Run("Grid has too many rows", func(t *testing.T) {
-		dataset := append(sampleGrid, sampleGrid[0])
-
-		if Validate(dataset) == nil {
-			t.Error("Validated Grid with too many rows as correct")
-		} else {
-			if Validate(dataset) != ErrTooManyRows {
-				t.Error("Invalid error provided")
-			}
-		}
-	})
-
-	t.Run("Grid has too many columns", func(t *testing.T) {
-		colGrid := CopyGrid(sampleGrid)
-		colGrid[0] = append(colGrid[0], 1, 2, 3)
-
-		if Validate(colGrid) == nil {
-			t.Error("Validated Grid with too many columns as correct")
-		} else {
-			if Validate(colGrid) != ErrTooManyCols {
-				t.Error("Invalid error provided")
-			}
-		}
-	})
-
 	t.Run("Grid has too low values provided", func(t *testing.T) {
 		nGrid := CopyGrid(sampleGrid)
 
@@ -148,11 +123,7 @@ func TestDataset_GetValue(t *testing.T) {
 
 func TestGrid_Rebuild(t *testing.T) {
 	grid := CopyGrid(sampleGrid)
-	copiedGrid, err := grid.Rebuild(Position{X: 0, Y: 0}, 0)
-
-	if err != nil {
-		t.Error(err)
-	}
+	copiedGrid := grid.Rebuild(Position{X: 0, Y: 0}, 0)
 
 	if !reflect.DeepEqual(grid, copiedGrid) {
 		t.Error("values of rebuilt grid should remain same")
