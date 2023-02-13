@@ -42,8 +42,6 @@ func TestLoad(t *testing.T) {
 }
 
 func FuzzLoad(f *testing.F) {
-	f.Add(sampleLoadDataset)
-
 	f.Fuzz(func(t *testing.T, orig string) {
 		r := strings.NewReader(orig)
 
