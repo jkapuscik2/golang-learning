@@ -1,4 +1,4 @@
-module github.com/jkapuscik2/learning-go-sudoku
+module github.com/jkapuscik2/sudoku-solver
 
 go 1.19
 
