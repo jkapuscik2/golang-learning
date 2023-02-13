@@ -65,7 +65,7 @@ func TestDataset_Validate(t *testing.T) {
 		if Validate(nGrid) == nil {
 			t.Error("Validated Grid with duplicated values in a row as correct")
 		} else {
-			if Validate(nGrid) != ErrDuplicatedValues {
+			if Validate(nGrid) != ErrDuplicatedValuesInRow {
 				t.Error("Invalid error provided")
 			}
 		}
@@ -79,7 +79,7 @@ func TestDataset_Validate(t *testing.T) {
 		if Validate(nGrid) == nil {
 			t.Error("Validated Grid with duplicated values in a column as correct")
 		} else {
-			if Validate(nGrid) != ErrDuplicatedValues {
+			if Validate(nGrid) != ErrDuplicatedValuesInColumn {
 				t.Error("Invalid error provided")
 			}
 		}
@@ -94,7 +94,7 @@ func TestDataset_Validate(t *testing.T) {
 		if Validate(nGrid) == nil {
 			t.Error("Validated Grid with duplicated values in a box as correct")
 		} else {
-			if Validate(nGrid) != ErrDuplicatedValues {
+			if Validate(nGrid) != ErrDuplicatedValuesInBox {
 				t.Error("Invalid error provided")
 			}
 		}
@@ -106,7 +106,7 @@ func TestDataset_GetValue(t *testing.T) {
 
 	_, err := nGrid.GetValue(Position{10, 10})
 
-	if err != ErrorFieldNoExists {
+	if err != ErrFieldNoExists {
 		t.Error("Getting invalid value succeeded")
 	}
 

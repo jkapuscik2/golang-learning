@@ -3,16 +3,19 @@ package dataset
 import "fmt"
 
 const (
-	EmptyVal            = 0
-	BoxSize             = 3
-	MinVal              = 1
-	MaxVal              = 9
-	GridSize            = 9
-	ErrInvalidData      = GridError("Invalid data provided")
-	ErrTooManyCols      = GridError("Too many columns in dataset")
-	ErrTooManyRows      = GridError("Too many rows in dataset")
-	ErrDuplicatedValues = GridError("There are duplicated values in the Grid")
-	ErrorFieldNoExists  = GridError("Filed does not exists")
+	EmptyVal                    = 0
+	BoxSize                     = 3
+	MinVal                      = 1
+	MaxVal                      = 9
+	GridSize                    = 9
+	ErrInvalidData              = GridError("Invalid data provided")
+	ErrTooManyCols              = GridError("Too many columns in dataset")
+	ErrTooManyRows              = GridError("Too many rows in dataset")
+	ErrDuplicatedValuesInRow    = GridError("There are duplicated values in a row of the Grid")
+	ErrDuplicatedValuesInColumn = GridError("There are duplicated values in a column of the Grid")
+	ErrDuplicatedValuesInBox    = GridError("There are duplicated values in one of the boxes of the Grid")
+	ErrFieldNoExists            = GridError("Filed does not exists")
+	ErrIncompleteData           = GridError("Provided dataset is not a valid sudoku grid")
 )
 
 type GridError string
@@ -48,6 +51,7 @@ func (dataset Grid) Rebuild(pos Position, val int64) Grid {
 
 func CopyGrid(matrix Grid) Grid {
 	var duplicate Grid
+
 	for i := range matrix {
 		duplicate[i] = matrix[i]
 	}
@@ -57,7 +61,7 @@ func CopyGrid(matrix Grid) Grid {
 
 func (dataset Grid) GetValue(pos Position) (int64, error) {
 	if !has(dataset, pos) {
-		return 0, ErrorFieldNoExists
+		return 0, ErrFieldNoExists
 	}
 
 	return dataset[pos.Y][pos.X], nil
@@ -68,7 +72,7 @@ func Validate(dataset Grid) error {
 	for idx, row := range dataset {
 		// check if there are duplicated values in rows
 		if hasDuplicates(row) {
-			return ErrDuplicatedValues
+			return ErrDuplicatedValuesInRow
 		}
 
 		// check if cell vales are correct
@@ -84,7 +88,7 @@ func Validate(dataset Grid) error {
 	// check if there are duplicated values in columns
 	for _, column := range columns {
 		if hasDuplicates(column) {
-			return ErrDuplicatedValues
+			return ErrDuplicatedValuesInColumn
 		}
 	}
 
@@ -104,7 +108,7 @@ func Validate(dataset Grid) error {
 			}
 
 			if hasDuplicates(boxVars) {
-				return ErrDuplicatedValues
+				return ErrDuplicatedValuesInBox
 			}
 		}
 	}

@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/jkapuscik2/sudoku-solver/internal/solver"
+	"github.com/jkapuscik2/sudoku-solver/internal/solver/dataset"
 	"github.com/pkg/profile"
-	"learning-go-sudoku/internal/solver"
-	"learning-go-sudoku/internal/solver/dataset"
 	"log"
 	"os"
 	"runtime"

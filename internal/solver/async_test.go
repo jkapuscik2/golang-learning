@@ -2,11 +2,23 @@ package solver
 
 import (
 	"errors"
-	"learning-go-sudoku/internal/solver/dataset"
+	"github.com/jkapuscik2/sudoku-solver/internal/solver/dataset"
 	"reflect"
 	"runtime"
 	"testing"
 )
+
+var emptyGrid = dataset.Grid{
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0},
+}
 
 var sampleGrid = dataset.Grid{
 	{0, 2, 0, 8, 1, 0, 7, 4, 0},
@@ -57,54 +69,71 @@ var sampleGridSolvedInvalid = dataset.Grid{
 }
 
 func TestSolveAsync(t *testing.T) {
-	data := dataset.CopyGrid(sampleGrid)
-
-	res, err := SolveAsync(data, runtime.NumCPU())
-	if err != nil {
-		t.Fatalf("Error during solving test grid: %q", err.Error())
+	type args struct {
+		grid    dataset.Grid
+		workers int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    dataset.Grid
+		wantErr bool
+		errType error
+	}{
+		{
+			name:    "correct dataset",
+			args:    args{grid: sampleGrid, workers: runtime.NumCPU()},
+			want:    sampleGridSolved,
+			wantErr: false,
+		},
+		{
+			name:    "unsolvable dataset",
+			args:    args{grid: sampleInvalidGrid, workers: runtime.NumCPU()},
+			want:    sampleInvalidGrid,
+			wantErr: true,
+			errType: ErrNoSolutions,
+		},
+		{
+			name:    "solved dataset",
+			args:    args{grid: sampleGridSolved, workers: runtime.NumCPU()},
+			want:    sampleGridSolved,
+			wantErr: false,
+		},
+		{
+			name:    "wrongly solved dataset",
+			args:    args{grid: sampleGridSolvedInvalid, workers: runtime.NumCPU()},
+			want:    sampleGridSolvedInvalid,
+			wantErr: true,
+			errType: ErrNoSolutions,
+		},
+		//{
+		//	name:    "empty dataset",
+		//	args:    args{grid: emptyGrid, workers: 1},
+		//	want:    emptyGrid,
+		//	wantErr: false,
+		//},
 	}
 
-	if !reflect.DeepEqual(res, sampleGridSolved) {
-		t.Error("Sudoku was not solved correctly")
-	}
-}
-
-func TestSolveAsyncInvalid(t *testing.T) {
-	data := dataset.CopyGrid(sampleInvalidGrid)
-
-	_, err := SolveAsync(data, runtime.NumCPU())
-
-	if !errors.Is(err, ErrNoSolutions) {
-		t.Fatalf("Did not report invalid grid")
-	}
-}
-
-func TestSolveAsyncSolved(t *testing.T) {
-	data := dataset.CopyGrid(sampleGridSolved)
-
-	res, err := SolveAsync(data, runtime.NumCPU())
-
-	if !reflect.DeepEqual(res, sampleGridSolved) {
-		t.Error("Sudoku was not solved correctly")
-	}
-
-	if err != nil {
-		t.Errorf("Error during solving test grid: %q", err.Error())
-	}
-}
-
-func TestSolveAsyncSolvedInvalid(t *testing.T) {
-	data := dataset.CopyGrid(sampleGridSolvedInvalid)
-
-	_, err := SolveAsync(data, runtime.NumCPU())
-
-	if !errors.Is(err, ErrNoSolutions) {
-		t.Errorf("No error during solving an invliad test grid")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := SolveAsync(tt.args.grid, tt.args.workers)
+			if tt.wantErr && err != nil && !errors.Is(err, tt.errType) {
+				t.Errorf("SolveAsync() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr && !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("SolveAsync() got = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
 
 func BenchmarkSolveAsync(b *testing.B) {
+	b.ReportAllocs()
+
 	workers := runtime.GOMAXPROCS(0)
+
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		grid := dataset.CopyGrid(sampleGrid)
 		SolveAsync(grid, workers)

@@ -2,7 +2,7 @@ package solver
 
 import (
 	"context"
-	"learning-go-sudoku/internal/solver/dataset"
+	"github.com/jkapuscik2/sudoku-solver/internal/solver/dataset"
 	"time"
 )
 

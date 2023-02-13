@@ -8,7 +8,7 @@ import (
 
 func Load(file io.Reader) (Grid, error) {
 	scanner := bufio.NewScanner(file)
-	scanner.Split(bufio.ScanWords)
+	scanner.Split(bufio.ScanLines)
 
 	var rowNum int
 	var data Grid
@@ -19,7 +19,7 @@ func Load(file io.Reader) (Grid, error) {
 		}
 
 		row := scanner.Text()
-		ints := [GridSize]int64{}
+		ints := []int64{}
 
 		for i, s := range row {
 			val, err := strconv.ParseInt(string(s), 0, 0)
@@ -31,11 +31,19 @@ func Load(file io.Reader) (Grid, error) {
 			if i > GridSize {
 				return data, ErrTooManyCols
 			}
-			ints[i] = val
+			ints = append(ints, val)
 		}
 
-		data[rowNum] = ints
+		if len(ints) != GridSize {
+			return data, ErrIncompleteData
+		}
+
+		data[rowNum] = *(*[GridSize]int64)(ints)
 		rowNum += 1
+	}
+
+	if rowNum < GridSize {
+		return data, ErrIncompleteData
 	}
 
 	return data, nil

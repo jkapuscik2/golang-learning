@@ -1,7 +1,7 @@
 package solver
 
 import (
-	"learning-go-sudoku/internal/solver/dataset"
+	"github.com/jkapuscik2/sudoku-solver/internal/solver/dataset"
 )
 
 func SolveBacktrace(grid dataset.Grid) (dataset.Grid, error) {
