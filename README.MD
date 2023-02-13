@@ -1,5 +1,7 @@
 ## Sudoku solver
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/jkapuscik2/sudoku-solver)](https://goreportcard.com/report/github.com/jkapuscik2/sudoku-solver)
+
 The script solves sudoku grid provided in a form of .txt file
 
 The script solves the provided sudoku in sync and async manner
