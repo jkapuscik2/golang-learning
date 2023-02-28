@@ -20,8 +20,8 @@ Available flags:
         Path to fle with sudoku (default "data/1.txt")
   -profile
         If application should be profiled
-  -workers int
-        Number of workers (default number of avaliable CPU)
+  -maxWorkers int
+        Number of maxWorkers (default number of avaliable CPU)
 ```
 
 

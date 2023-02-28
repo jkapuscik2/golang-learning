@@ -2,7 +2,10 @@ module github.com/jkapuscik2/sudoku-solver
 
 go 1.19
 
-require github.com/pkg/profile v1.7.0
+require (
+	github.com/pkg/profile v1.7.0
+	golang.org/x/sync v0.1.0
+)
 
 require (
 	github.com/felixge/fgprof v0.9.3 // indirect

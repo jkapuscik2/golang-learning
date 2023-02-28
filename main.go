@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/jkapuscik2/sudoku-solver/internal/dataset"
 	"github.com/jkapuscik2/sudoku-solver/internal/solver"
-	"github.com/jkapuscik2/sudoku-solver/internal/solver/dataset"
 	"github.com/pkg/profile"
 	"log"
 	"os"
@@ -44,8 +44,8 @@ func main() {
 	dataset.PrettyPrint(data)
 
 	sync(dataset.CopyGrid(data))
-
 	async(dataset.CopyGrid(data), *workers)
+
 }
 
 func sync(grid dataset.Grid) {

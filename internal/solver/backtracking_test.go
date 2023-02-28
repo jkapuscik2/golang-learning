@@ -2,7 +2,7 @@ package solver
 
 import (
 	"errors"
-	"github.com/jkapuscik2/sudoku-solver/internal/solver/dataset"
+	"github.com/jkapuscik2/sudoku-solver/internal/dataset"
 	"reflect"
 	"testing"
 )
@@ -33,13 +33,13 @@ func TestSolveBacktrace(t *testing.T) {
 			errType: ErrNoSolutions,
 		},
 		{
-			name:    "solved dataset",
+			name:    "blocked dataset",
 			args:    args{grid: sampleGridSolved},
 			want:    sampleGridSolved,
 			wantErr: false,
 		},
 		{
-			name:    "wrongly solved dataset",
+			name:    "wrongly blocked dataset",
 			args:    args{grid: sampleGridSolvedInvalid},
 			want:    sampleGridSolvedInvalid,
 			wantErr: true,
@@ -72,6 +72,33 @@ func BenchmarkTestSolveBacktrace(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		grid := dataset.CopyGrid(sampleGrid)
+		SolveBacktrace(grid)
+	}
+}
+
+func BenchmarkTestSolveBacktraceSimple(b *testing.B) {
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		grid := dataset.CopyGrid(sampleGridSimple)
+		SolveBacktrace(grid)
+	}
+}
+
+func BenchmarkTestSolveBacktraceEmpty(b *testing.B) {
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		grid := dataset.CopyGrid(emptyGrid)
+		SolveBacktrace(grid)
+	}
+}
+
+func BenchmarkTestSolveBacktraceHard(b *testing.B) {
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		grid := dataset.CopyGrid(sampleGridHard)
 		SolveBacktrace(grid)
 	}
 }
