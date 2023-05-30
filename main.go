@@ -45,7 +45,7 @@ func main() {
 
 	sync(dataset.CopyGrid(data))
 	async(dataset.CopyGrid(data), *workers)
-
+	asyncWg(dataset.CopyGrid(data), *workers)
 }
 
 func sync(grid dataset.Grid) {
@@ -63,6 +63,17 @@ func async(grid dataset.Grid, workers int) {
 	fmt.Println("Solving sudoku asynchronously")
 
 	solution, err := solver.SolveAsync(grid, workers)
+	if err != nil {
+		fmt.Println("Failed to solve grid", err)
+	} else {
+		dataset.PrettyPrint(solution)
+	}
+}
+
+func asyncWg(grid dataset.Grid, workers int) {
+	fmt.Println("Solving sudoku asynchronously with wait groups")
+
+	solution, err := solver.SolveWg(grid, workers)
 	if err != nil {
 		fmt.Println("Failed to solve grid", err)
 	} else {

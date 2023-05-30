@@ -44,7 +44,7 @@ const tooLongDataset = `003020600
 
 const tooManyColumns = `1234567891011`
 
-const tooLittleColumns = `1234`
+const tooFewColumns = `1234`
 
 var sampleLoadGrid = Grid{
 	{0, 0, 3, 0, 2, 0, 6, 0, 0},
@@ -100,7 +100,7 @@ func TestLoad(t *testing.T) {
 		},
 		{
 			name:    "too little columns",
-			args:    args{file: strings.NewReader(tooLittleColumns)},
+			args:    args{file: strings.NewReader(tooFewColumns)},
 			wantErr: true,
 			errType: ErrIncompleteData,
 		},
@@ -124,7 +124,6 @@ func FuzzLoad(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, dataset string) {
 		r := strings.NewReader(dataset)
-
 		res, err := Load(r)
 
 		if err == nil {

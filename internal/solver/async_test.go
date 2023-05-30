@@ -1,8 +1,9 @@
-package solver
+package solver_test
 
 import (
 	"errors"
 	"github.com/jkapuscik2/sudoku-solver/internal/dataset"
+	"github.com/jkapuscik2/sudoku-solver/internal/solver"
 	"reflect"
 	"runtime"
 	"testing"
@@ -116,7 +117,7 @@ func TestSolveAsync(t *testing.T) {
 			args:    args{grid: sampleInvalidGrid, workers: runtime.NumCPU()},
 			want:    sampleInvalidGrid,
 			wantErr: true,
-			errType: ErrNoSolutions,
+			errType: solver.ErrNoSolutions,
 		},
 		{
 			name:    "blocked dataset",
@@ -125,11 +126,11 @@ func TestSolveAsync(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "wrongly blocked dataset",
+			name:    "wrongly solved dataset",
 			args:    args{grid: sampleGridSolvedInvalid, workers: runtime.NumCPU()},
 			want:    sampleGridSolvedInvalid,
 			wantErr: true,
-			errType: ErrNoSolutions,
+			errType: solver.ErrNoSolutions,
 		},
 		{
 			name:              "empty dataset",
@@ -142,7 +143,7 @@ func TestSolveAsync(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := SolveAsync(tt.args.grid, tt.args.workers)
+			got, err := solver.SolveAsync(tt.args.grid, tt.args.workers)
 			if tt.wantErr && err != nil && !errors.Is(err, tt.errType) {
 				t.Errorf("SolveAsync() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -157,12 +158,12 @@ func TestSolveAsync(t *testing.T) {
 func BenchmarkSolveAsync(b *testing.B) {
 	b.ReportAllocs()
 
-	workers := runtime.GOMAXPROCS(0) / 2
+	workers := runtime.GOMAXPROCS(0)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		grid := dataset.CopyGrid(sampleGrid)
-		SolveAsync(grid, workers)
+		solver.SolveAsync(grid, workers)
 	}
 }
 
@@ -174,7 +175,7 @@ func BenchmarkSolveAsyncSimple(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		grid := dataset.CopyGrid(sampleGridSimple)
-		SolveAsync(grid, workers)
+		solver.SolveAsync(grid, workers)
 	}
 }
 
@@ -186,18 +187,18 @@ func BenchmarkSolveAsyncEmpty(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		grid := dataset.CopyGrid(emptyGrid)
-		SolveAsync(grid, workers)
+		solver.SolveAsync(grid, workers)
 	}
 }
 
 func BenchmarkSolveAsyncHard(b *testing.B) {
 	b.ReportAllocs()
 
-	workers := runtime.GOMAXPROCS(0) * 10
+	workers := runtime.GOMAXPROCS(0)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		grid := dataset.CopyGrid(sampleGridHard)
-		SolveAsync(grid, workers)
+		solver.SolveAsync(grid, workers)
 	}
 }

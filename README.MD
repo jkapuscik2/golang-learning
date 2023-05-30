@@ -4,7 +4,11 @@
 
 The script solves sudoku grid provided in a form of .txt file
 
-The script solves the provided sudoku in sync and async manner
+The script was intended as a learning practise and solves the provided grid in a following ways:
+
+- synchronously using a backtracking approach
+- using multiple goroutines and communication via channels 
+- using wait groups
 
 ```bash
 go build main.go
@@ -31,9 +35,4 @@ Testing
 go test  ./... -v -bench=.
 ```
 
-Sources:
-- https://go.dev/blog/context
-- https://go.dev/blog/laws-of-reflection
-- https://go.dev/doc/articles/race_detector
-- https://go.dev/blog/slices-intro
-- https://go.dev/security/fuzz/
+

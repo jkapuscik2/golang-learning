@@ -4,29 +4,34 @@ import (
 	"context"
 	"github.com/jkapuscik2/sudoku-solver/internal/dataset"
 	"golang.org/x/sync/semaphore"
-	"sync/atomic"
+	"sync"
 	"time"
 )
 
-const timeout = 5
+const timeout = 4
 
 type publisher struct {
-	blocked atomic.Bool
+	blocked bool
+	mx      sync.Mutex
 }
 
 func (p *publisher) solve(ch chan<- dataset.Grid, val dataset.Grid) {
-	if !p.blocked.Load() {
+	p.mx.Lock()
+	defer p.mx.Unlock()
+	if !p.blocked {
 		p.block()
 		ch <- val
 	}
 }
 
 func (p *publisher) block() {
-	p.blocked.Store(true)
+	p.blocked = true
 }
 
 func (p *publisher) attempt(ch chan<- bool, val bool) {
-	if !p.blocked.Load() {
+	p.mx.Lock()
+	defer p.mx.Unlock()
+	if !p.blocked {
 		ch <- val
 	}
 }
@@ -37,23 +42,35 @@ func SolveAsync(grid dataset.Grid, maxWorkers int) (dataset.Grid, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout*time.Second)
 	defer cancel()
 
-	solutions := make(chan dataset.Grid, 1)
-
-	// true - success
-	// false - failure
-	attempts := make(chan bool, maxWorkers)
-	//defer close(attempts)
-
 	pub := publisher{}
 	defer pub.block()
 
+	solutions := make(chan dataset.Grid, 1)
+	defer close(solutions)
+	// true - success
+	// false - failure
+	attempts := make(chan bool, maxWorkers)
+	defer close(attempts)
+
 	go func() {
-		sem.Acquire(ctx, 1)
+		sem.TryAcquire(1)
 		guessAsync(ctx, grid, solutions, attempts, sem, &pub)
 		defer sem.Release(1)
 	}()
 
 	attemptCount, failedCount := 1, 0
+
+	defer func() {
+		// drain channels before closing
+		for {
+			select {
+			case <-attempts:
+			case <-solutions:
+			default:
+				return
+			}
+		}
+	}()
 
 	for {
 		select {
